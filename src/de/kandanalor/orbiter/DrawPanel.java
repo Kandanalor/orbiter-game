@@ -145,59 +145,6 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		PointF point = new PointF(event.getX(), event.getY());
 		
 
-		
-		GameObject planet = world.getObjectOn(translateTo(point));
-		if(selected_obj != null) {
-			if(new PointF(point.x - movement_knob.x, point.y - movement_knob.y).length() < 10) {
-				
-			}
-		}
-		if(event.getAction() == MotionEvent.ACTION_DOWN)
-			selected_obj = planet;
-		if(selected_obj  != null) {
-			canvasthread.pauseL();
-		}
-		
-		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			//set this if it is drag event
-			onTouchStart = new PointF(event.getX(), event.getY());
-			translate_onTouchStart = new PointF(verschiebung.x, verschiebung.y);
-			
-
-		}
-		else if (event.getAction() == MotionEvent.ACTION_MOVE){
-			if(selected_obj == null) {
-				float dx = event.getX() - onTouchStart.x;
-				float dy = event.getY() - onTouchStart.y;
-				verschiebung.x = dx + translate_onTouchStart.x;
-				verschiebung.y = dy + translate_onTouchStart.y;
-			}
-			else {
-				float dx = event.getX();
-				float dy = event.getY();
-
-				selected_obj.setPos(translateTo(new PointF(dx, dy)));
-			}
-			//trans_pos.postTranslate(dx,dy);
-		}
-		else if (event.getAction() == MotionEvent.ACTION_UP){
-			//Log.d(TAG, "Action: " +event.getAction());
-			//selected_obj = world.getObjectOn(translateTo(point));
-			//gucken ob ein Planet ausgewaehlt wurde
-			/*if(Math.abs(onTouchStart.x - event.getX()) < 10 && Math.abs(onTouchStart.y - event.getY()) < 10) {
-			
-				PointF point = new PointF(event.getX(), event.getY());				
-				GameObject planet = world.getObjectOn(translateTo(point));
-				if(planet != null) {
-					canvasthread.pauseL();
-					selected_obj = planet;
-				
-			}*/
-			
-			onTouchStart = null;
-			translate_onTouchStart = null;
-			//selected_obj = null;
-		}
 		return true;
 	}
 
