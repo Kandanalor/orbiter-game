@@ -75,11 +75,10 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		
 		world.onDraw(canvas);
 		
-		
-		try{
-			drawPlanetUI(selected_obj, canvas);
+		for(GameObject planet : world.getObjects()) {
+			drawPlanetUI(planet, canvas);
 		}
-		catch(NullPointerException e){}//now, it is thread safe :P
+		
 	}
 	public void drawPlanetUI(GameObject planet, Canvas canvas) {
 		if(planet != null) {

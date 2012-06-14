@@ -130,4 +130,8 @@ public class World extends GameObject{
 		return null;
 	}
 
+	public ArrayList<GameObject> getObjects() {
+		return objects;
+	}
+
 }
