@@ -23,7 +23,7 @@ public class ArrowShape extends Shape {
 		canvas.drawLine(start.x - (start.y-end.y)/10, start.y - (start.x-end.x)/10, start.x + (start.y-end.y)/10, start.y + (start.x-end.x) /10, paint);
 		float dist = (float) Math.sqrt((start.x-end.x)*(start.x-end.x) + (start.y-end.y) * (start.y-end.y));
 		float alpha = (float) Math.asin(Math.abs(start.x - end.x) / dist);
-		
+		//bla
 	}
 
 }
