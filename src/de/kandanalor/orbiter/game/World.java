@@ -122,8 +122,8 @@ public class World extends GameObject{
 			PointF op = o.getPos();
 			
 			float sq_dist = (float) Math.sqrt((op.x - position.x) * (op.x - position.x) + (op.y - position.y) * (op.y - position.y));
-			//Log.d(TAG, "Distance " + o.getName() + " " + sq_dist + " <=> " + o.getRadius() * o.getRadius() );
-			if(sq_dist <= o.getRadius() *2) {
+			Log.d(TAG, "Distance " + o.getName() + " " + sq_dist + " <=> " +  o.getRadius() );
+			if(sq_dist <= o.getRadius()) {
 				return o;
 			}
 		}

@@ -76,7 +76,7 @@ public class GameLoop extends Thread {
                 }
             }
             frames++;
-            if(frames % 20 == 0)
+            if(frames % 100 == 0)
             	Log.d(TAG, "FPS: "+getFPS());
         }
     }

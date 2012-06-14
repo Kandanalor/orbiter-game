@@ -13,6 +13,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -27,7 +28,7 @@ import de.kandanalor.orbiter.ui.TouchInputType;
 public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, SensorEventListener, OnTouchListener {
 	
 
-	private GameLoop canvasthread;
+	private GameLoop gameloop;
 	private World world = null;
 	private GameObject selected_obj = null;
 	
@@ -41,7 +42,8 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	
 	//UI elements
 	TouchInputType inputmode = null;
-	PointF movement_knob = null;
+
+
 	
 	
 	public DrawPanel(Context context, AttributeSet attrs) {
@@ -58,14 +60,15 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		
 		setOnTouchListener(this);
 		
-		canvasthread = new GameLoop(getHolder(), this);
+		gameloop = new GameLoop(getHolder(), this);
 		setFocusable(true);
 		
 		world = new World(context);
 		
-		
 	}
 	
+
+
 	@Override
 	public void onDraw(Canvas canvas) {
 		//Log.d(TAG, "onDraw");
@@ -75,8 +78,10 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		
 		world.onDraw(canvas);
 		
-		for(GameObject planet : world.getObjects()) {
-			drawPlanetUI(planet, canvas);
+		if(gameloop.isPaused()) {
+			for(GameObject planet : world.getObjects()) {
+				drawPlanetUI(planet, canvas);
+			}
 		}
 		
 	}
@@ -101,8 +106,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 			paint.setColor(0xFF40d010);
 			
 		}
-		else
-			movement_knob = null;
+
 	}
 	public void drawMovVector(GameObject planet, Canvas canvas) {
 		
@@ -117,34 +121,88 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		//der Bewegungspfeil
 		
 		canvas.drawCircle(pos.x, pos.y, planet.getRadius()+2, paint);
-		int radius = planet.getRadius();
+
+		PointF[] arrow = getMovArrow(planet);
+		PointF knob_point = arrow[1];
 		
-		Movement mov = planet.getMovement();
-		Movement norm = new Movement(mov.x / mov.length(), mov.y / mov.length());
-		PointF end = new PointF(pos.x +mov.x, pos.y + mov.y);
-		//Log.d(TAG, "Movement: " + mov.x + " " + mov.y);
-		
-		//strahlensatz
-		float dist = (float) Math.sqrt((pos.x-end.x)*(pos.x-end.x) + (pos.y-end.y) * (pos.y-end.y));
-		pos = new PointF(pos.x + norm.x * radius, pos.y + norm.y * radius);
-		end = new PointF(pos.x +mov.x, pos.y + mov.y);
-		
-		canvas.drawLine(pos.x, pos.y , end.x, end.y, paint);
+		canvas.drawLine(arrow[0].x, arrow[0].y , arrow[1].x, arrow[1].y, paint);
 		
 		paint.setStyle(Paint.Style.FILL_AND_STROKE);
 		
-		canvas.drawCircle(end.x, end.y, 10, paint);
-		movement_knob = new PointF(end.x, end.y);
+		
+		canvas.drawCircle(knob_point.x, knob_point.y, 10, paint);
+		
+
+		//= new PointF(end.x, end.y);
 		//canvas.drawLine(start.x - (start.y-end.y)/10, start.y - (start.x-end.x)/10, start.x + (start.y-end.y)/10, start.y + (start.x-end.x) /10, paint);
 		//new ArrowShape(planet.getPos(), mov).draw(canvas, paint);		
 	}
 	
+	private PointF[] getMovArrow(GameObject planet) {
+		int radius = planet.getRadius();
+		PointF pos = planet.getPos();
+		Movement mov = planet.getMovement();
+		
+		if(mov.length() > 0) {
+			Movement norm = new Movement(mov.x / mov.length(), mov.y / mov.length());
+			PointF end = new PointF(pos.x +mov.x, pos.y + mov.y);
+			//Log.d(TAG, "Movement: " + mov.x + " " + mov.y);
+			
+			//strahlensatz
+			float dist = (float) Math.sqrt((pos.x-end.x)*(pos.x-end.x) + (pos.y-end.y) * (pos.y-end.y));
+			pos = new PointF(pos.x + norm.x * radius, pos.y + norm.y * radius);
+			end = new PointF(pos.x +mov.x, pos.y + mov.y);
+			return new PointF[]{pos, end};
+		}
+		else {
+			return  new PointF[]{pos, pos};
+		}
+	}
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		
-		PointF point = new PointF(event.getX(), event.getY());
+		PointF point = translateTo(new PointF(event.getX(), event.getY()));
+		
 		
 
+		
+		int action = event.getAction() & MotionEvent.ACTION_MASK;
+		int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_ID_MASK) >> MotionEvent.ACTION_POINTER_ID_SHIFT;
+		if (action == MotionEvent.ACTION_DOWN) {
+			Log.d(TAG, " Pointerpos: " + point.x + " " + point.y);
+			inputmode = null;
+			
+			if(event.getPointerCount() == 2) {
+				inputmode = TouchInputType.SCALE;
+			}
+			else {			
+				for(GameObject planet : world.getObjects()) {
+					PointF movknob = getMovArrow(planet)[1];
+					//Log.d(TAG, "Movknob: " + movknob.x+" "+movknob.y);
+					if(new PointF(point.x - movknob.x, point.y - movknob.y).length() < 30) {
+						inputmode = TouchInputType.SET_MOVEMENT;
+					}
+					
+				}
+				if(inputmode == null) {
+					GameObject planet = world.getObjectOn(point);				
+					if(planet == null) {
+						inputmode = TouchInputType.MOVE_WORLD;
+					}
+					else {
+						inputmode = TouchInputType.MOVE_PLANET;
+					}
+				}
+			}
+			
+		}
+		else if (action == MotionEvent.ACTION_MOVE){
+
+		}
+		else if (action == MotionEvent.ACTION_UP){
+
+		}
+		Log.d(TAG, "InputType: " + inputmode);
 		return true;
 	}
 
@@ -174,8 +232,8 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		verschiebung = new PointF(getWidth()/2, getHeight()/2);
 		//trans_pos.setTranslate(getWidth()/2, getHeight()/2);
 		// TODO Auto-generated method stub
-	    canvasthread.setRunning(true);
-	    canvasthread.start();
+		gameloop.setRunning(true);
+		gameloop.start();
 
 	//	ball.setPos(getWidth()/2, getHeight()/2);
 	}
@@ -184,10 +242,10 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		boolean retry = true;
-		canvasthread.setRunning(false);
+		gameloop.setRunning(false);
 		while (retry) {
 			try {
-				canvasthread.join();
+				gameloop.join();
 				retry = false;
 			} catch (InterruptedException e) {
 				// we will try it again and again...
@@ -234,7 +292,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	}
 
 	public GameLoop getGameLoop() {
-		return canvasthread;
+		return gameloop;
 	}
 
 	public GameObject getSelected_obj() {
@@ -245,6 +303,6 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		this.selected_obj = selected_obj;
 	}
 	public void setGameStateListener(GameStateListener listener) {
-		canvasthread.setGameStateListener(listener);
+		gameloop.setGameStateListener(listener);
 	}
 }
