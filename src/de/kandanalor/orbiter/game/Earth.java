@@ -12,9 +12,9 @@ public class Earth extends Planet {
 	private static final String TAG = "Moon";
 
 	
-	public Earth(Context context) {
+	public Earth() {
 		setRadius(50);
-		setBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.earth));
+		setBitmapResource(R.drawable.earth);
 		setMass(81);
 		setName("Earth");
 	}

@@ -8,15 +8,20 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
+import de.kandanalor.orbiter.game.World;
 
 public class PauseButton extends ImageButton implements OnClickListener {
 	
-	public static final boolean PLAY = true;
-	public static final boolean PAUSE = false;
-	boolean state = PAUSE;
+	public static final int PLAY = 0;
+	public static final int PAUSE = 1;
+	public static final int REPLAY = 2;
 	
 	Bitmap pause_img = null;
 	Bitmap play_img = null;
+	Bitmap replay_img = null;
+	
+	GameLoop gameloop = null;
+	
 	
 	public PauseButton(Context context) {
 		super(context);
@@ -37,21 +42,57 @@ public class PauseButton extends ImageButton implements OnClickListener {
 		options.inPreferredConfig = Bitmap.Config.RGB_565;
 		pause_img = BitmapFactory.decodeResource(getResources(), R.drawable.av_pause, options);
 		play_img = BitmapFactory.decodeResource(getResources(), R.drawable.av_play, options);
+		replay_img = BitmapFactory.decodeResource(getResources(), R.drawable.av_replay, options);
 	}
 	@Override
 	public void onDraw(Canvas c) {
-		setImageBitmap(state ? play_img : pause_img);
+		switch(getState()) {
+			case PLAY:
+				setImageBitmap(play_img); break;
+			case PAUSE:
+				setImageBitmap(pause_img); break;
+			case REPLAY:
+				setImageBitmap(replay_img); break;
+		}
+		
 		super.onDraw(c);
 	}
 	@Override
 	public void onClick(View v) {
-		setState(!state);
+		int state = getState();
+		if(state == PLAY) {
+			SaveGameProvider.savegames.put(SaveGameProvider.QUICKSAVE, gameloop.getWorld().clone());
+			gameloop.resumeL();
+		}
+		else if(state == PAUSE) {
+			gameloop.pauseL();
+		}
+		else if(state == REPLAY) {
+			World world = SaveGameProvider.savegames.get(SaveGameProvider.QUICKSAVE);
+			world.loadBitmaps(getContext());
+			
+			gameloop.setWorld(world);
+			gameloop.replay();
+		}
 	}
-	public boolean getState() {
-		return state;
+	public int getState() {
+		if(gameloop == null)
+			throw new IllegalArgumentException("Gameloop is not set!");
+		if(gameloop.isGame_over()) {
+			return REPLAY;
+		}
+		else if(gameloop.isPaused()){
+			return PLAY;
+		}
+		else {
+			return PAUSE;
+		}
 	}
-	public void setState(boolean state) {
-		this.state = state;
+	public GameLoop getGameloop() {
+		return gameloop;
+	}
+	public void setGameloop(GameLoop gameloop) {
+		this.gameloop = gameloop;
 	}
 
 

@@ -1,15 +1,22 @@
 package de.kandanalor.orbiter.game;
 
+import java.io.Serializable;
+
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.util.Log;
 import de.kandanalor.orbiter.exceptions.ObjectCollisionException;
 import de.kandanalor.orbiter.physics.Force;
 import de.kandanalor.orbiter.physics.Movement;
 
-public abstract class GameObject {
+public abstract class GameObject implements Cloneable, Serializable{
+	
+	/**
+	 * Zum Serialisieren, weil ich es kann^^
+	 */
+	private static final long serialVersionUID = 42L;
 	
 	private PointF pos = new PointF(0,0);
 	private Movement movement = new Movement(0,0); // in m/s
@@ -20,7 +27,7 @@ public abstract class GameObject {
 	
 	public static final int G = 600000; //Gravitationskonstante
 	private static final String TAG = "GameObject";
-	private String name = null;
+	private String name = "";
 	
 	public PointF getPos() {
 		return pos;
@@ -153,6 +160,17 @@ public abstract class GameObject {
 	}
 
 	public void setName(String name) {
+		if(name == null)
+			name = "";
 		this.name = name;
 	}
+	@Override
+	public int hashCode(){
+		return getName().hashCode();
+	}
+	public abstract GameObject clone();
+	/**
+	 * Load all your Bitmaps here is called on initialisation and deserialization
+	 * */
+	public void loadBitmaps(Context context) {}
 }

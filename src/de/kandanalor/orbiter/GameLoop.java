@@ -4,10 +4,11 @@ import android.graphics.Canvas;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import de.kandanalor.orbiter.exceptions.ObjectCollisionException;
+import de.kandanalor.orbiter.game.World;
 import de.kandanalor.orbiter.interfaces.GameStateListener;
 
 
-public class GameLoop extends Thread {
+public class GameLoop implements Runnable {
     private SurfaceHolder _surfaceHolder;
     private DrawPanel _panel;
 	private GameStateListener state_listener = null;
@@ -15,14 +16,22 @@ public class GameLoop extends Thread {
     private boolean paused = true;
     private boolean game_over = false;
     
+
+    
     private long last_update =  System.currentTimeMillis();
     private int frames = 0;
     
     private static final String TAG = "GameLoop";
     
+    private Thread thread = null;
+    
     public GameLoop(SurfaceHolder surfaceHolder, DrawPanel panel) {
         _surfaceHolder = surfaceHolder;
         _panel = panel;
+    }
+    public void start() {
+    	thread = new Thread(this);
+    	thread.start();
     }
     public float getFPS() {
     	long now = System.currentTimeMillis();
@@ -34,7 +43,7 @@ public class GameLoop extends Thread {
     public void setRunning(boolean run) {
         _run = run;
     }
-    int pause = 10;
+    int pause = 0;
     @Override
     public void run() {
         Canvas c;
@@ -46,9 +55,9 @@ public class GameLoop extends Thread {
 				e.printStackTrace();
 			}
         	
-        	if(!paused) {
+        	if(!paused && !game_over) {
 	        	try {
-					_panel.getWorld().updatePhysics();
+					getWorld().updatePhysics();
 				} catch (ObjectCollisionException e) {
 					gameOver();
 				}
@@ -87,6 +96,9 @@ public class GameLoop extends Thread {
 		if(state_listener != null)
 			state_listener.onGameOver();
 	}
+	public void replay() {
+		game_over = false;
+	}
 	public void pauseL() {
 		this.paused = true;
 		_panel.getWorld().pausePhysics();
@@ -106,6 +118,18 @@ public class GameLoop extends Thread {
 	}
 	public void setGameStateListener(GameStateListener listener) {
 		state_listener = listener;
+	}
+	public Thread getThread() {
+		return thread;
+	}
+	public boolean isGame_over() {
+		return game_over;
+	}
+	public World getWorld() {
+		return _panel.getWorld();
+	}
+	public void setWorld(World world) {
+		_panel.setWorld(world);
 	}
     
 }

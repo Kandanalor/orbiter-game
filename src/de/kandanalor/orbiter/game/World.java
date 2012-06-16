@@ -15,7 +15,7 @@ import de.kandanalor.orbiter.exceptions.ObjectCollisionException;
 import de.kandanalor.orbiter.physics.Force;
 
 public class World extends GameObject{
-	private Bitmap background = null;
+	private transient Bitmap background = null;
 	
 	private static final String TAG = "World";
 	
@@ -25,31 +25,20 @@ public class World extends GameObject{
 	private ArrayList<GameObject> objects = new ArrayList<GameObject>(); 
 
 	
-	public World(Context context) {
-		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inPreferredConfig = Bitmap.Config.RGB_565;
-		background = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars, options);
-		
-		Moon moon = new Moon(context);
-		Merkur merkur = new Merkur(context);
-		Earth earth = new Earth(context);
-		
-        earth.setPos(0,-200);
-        earth.setMovement(0,0);
-        
-        merkur.setPos(0,0);
-        merkur.setMovement(-50,0);
+	public World() {
 
-        
-        moon.setPos(200,200);
-        moon.setMovement(0,-50);
-        
-        objects.add(moon);
-        
-        objects.add(merkur);
-        objects.add(earth);
+
 	}
-	
+	public void loadBitmaps(Context context){
+		if(background == null) {
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inPreferredConfig = Bitmap.Config.RGB_565;
+			background = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars, options);
+		}
+		for(GameObject o : objects) {
+			o.loadBitmaps(context);
+		}
+	}
 	public void onDraw(Canvas canvas) {
 		//Log.d(TAG, "onDraw");
 		Paint paint = new Paint();
@@ -118,20 +107,33 @@ public class World extends GameObject{
 	}
 
 	public GameObject getObjectOn(PointF position) {
-		for(GameObject o : objects) {
-			PointF op = o.getPos();
-			
-			float sq_dist = (float) Math.sqrt((op.x - position.x) * (op.x - position.x) + (op.y - position.y) * (op.y - position.y));
-			Log.d(TAG, "Distance " + o.getName() + " " + sq_dist + " <=> " +  o.getRadius() );
-			if(sq_dist <= o.getRadius()) {
-				return o;
-			}
-		}
-		return null;
+		return getObjectOn(position, 0);
 	}
 
 	public ArrayList<GameObject> getObjects() {
 		return objects;
 	}
 
+	public GameObject getObjectOn(PointF position, float ca) {
+		for(GameObject o : objects) {
+			PointF op = o.getPos();
+			
+			float sq_dist = (float) Math.sqrt((op.x - position.x) * (op.x - position.x) + (op.y - position.y) * (op.y - position.y));
+			//Log.d(TAG, "Distance " + o.getName() + " " + sq_dist + " <=> " +  o.getRadius() );
+			if(sq_dist <= o.getRadius() + ca) {
+				return o;
+			}
+		}
+		return null;
+	}
+	/**
+	 * Thir returns a deep copy
+	 * */
+	public World clone() {
+		World clone = new World();
+		for(GameObject o : getObjects()) {
+			clone.getObjects().add(o.clone());
+		}	
+		return clone;
+	}
 }

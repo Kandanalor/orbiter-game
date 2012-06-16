@@ -14,11 +14,11 @@ public class Moon extends Planet{
 	
 	private static final String TAG = "Moon";
 	
-	public Moon(Context context) {
+	public Moon() {
 		super();
 		setRadius(30);
 		setMass(1);
-		setBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.moon));
+		setBitmapResource(R.drawable.moon);
 		setName("Moon");
 	}
 }

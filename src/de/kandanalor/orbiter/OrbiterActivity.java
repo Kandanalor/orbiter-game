@@ -1,6 +1,7 @@
 package de.kandanalor.orbiter;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.ZoomControls;
+import de.kandanalor.orbiter.game.World;
 import de.kandanalor.orbiter.interfaces.GameStateListener;
 
 public class OrbiterActivity extends Activity implements GameStateListener {
@@ -27,7 +29,7 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,  WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
         
 		setContentView(R.layout.game);
@@ -38,64 +40,56 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 	    drawpanel = (DrawPanel)findViewById(R.id.drawPanel);
 	    drawpanel.setGameStateListener(this);
 	    
+	    World stdworld = SaveGameProvider.savegames.get(SaveGameProvider.QUICKSAVE);
+	    Log.d(TAG, "Load standard world: "+stdworld);
+	    drawpanel.setWorld(stdworld);
+	    
 	    zoomctrl = (ZoomControls)findViewById(R.id.zoomCtrl);
 	    zoomctrl.setOnZoomInClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
-				drawpanel.setZoom(drawpanel.getZoom()*1.1f);
+				drawpanel.zoom(drawpanel.getCenter(), drawpanel.getZoom() + 0.1f);
 			}
 		});
 	    zoomctrl.setOnZoomOutClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
-				drawpanel.setZoom(drawpanel.getZoom()/1.1f);
+				drawpanel.zoom(drawpanel.getCenter(), drawpanel.getZoom() - 0.1f);
 			}
 		});
 	    
 	    
-	    final PauseButton pause = (PauseButton)findViewById(R.id.pause_btn);
-	    pause.setState(PauseButton.PLAY);
-	    pause.setOnClickListener(new View.OnClickListener(){
-
-			@Override
-			public void onClick(View v) {
-				
-				if(pause.getState() == PauseButton.PAUSE) {
-					drawpanel.getGameLoop().pauseL();
-				}
-				else if(pause.getState() == PauseButton.PLAY) {
-					drawpanel.getGameLoop().resumeL();
-					drawpanel.setSelected_obj(null);
-				}
-			}
-		});
+	    PauseButton pause = (PauseButton)findViewById(R.id.pause_btn);
+	    pause.setGameloop(drawpanel.getGameLoop());
 	}
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener(drawpanel, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         drawpanel.setOnTouchListener(drawpanel);
+        //drawpanel.getGameLoop().resumeL();
     }
 
     protected void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(drawpanel);
+        drawpanel.getGameLoop().pauseL();
     }
 	@Override
 	public void onGamePaused() {
 		PauseButton pause = (PauseButton)findViewById(R.id.pause_btn);
-		pause.setState(PauseButton.PLAY);
+		//pause.setState(PauseButton.PLAY);
 		//Log.d(TAG, "onGamePaused");
 	}
 	@Override
 	public void onGameResumed() {
 		PauseButton pause = (PauseButton)findViewById(R.id.pause_btn);
-		pause.setState(PauseButton.PAUSE);
+		//pause.setState(PauseButton.PAUSE);
 	}
 	@Override
 	public void onGameOver() {
 		PauseButton pause = (PauseButton)findViewById(R.id.pause_btn);
-		pause.setState(PauseButton.PLAY);
+		//pause.setState(PauseButton.PLAY);
 	}	 
 }

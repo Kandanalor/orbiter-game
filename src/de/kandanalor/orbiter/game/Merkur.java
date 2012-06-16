@@ -7,11 +7,11 @@ import de.kandanalor.orbiter.R;
 public class Merkur extends Planet {
 	private static final String TAG = "Merkur";
 	
-	public Merkur(Context context) {
+	public Merkur() {
 		super();
 		setRadius(40);
 		setMass(40);
-		setBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.merkur));
+		setBitmapResource(R.drawable.merkur);
 		setName("Merkur");
 	}
 }

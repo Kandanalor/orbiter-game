@@ -29,4 +29,10 @@ public class Shuttle extends GameObject {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public GameObject clone() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
