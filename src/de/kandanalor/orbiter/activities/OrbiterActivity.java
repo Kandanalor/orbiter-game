@@ -1,4 +1,4 @@
-package de.kandanalor.orbiter;
+package de.kandanalor.orbiter.activities;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -11,6 +11,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.ZoomControls;
+import de.kandanalor.orbiter.DrawPanel;
+import de.kandanalor.orbiter.PauseButton;
+import de.kandanalor.orbiter.R;
+import de.kandanalor.orbiter.SaveGameProvider;
+import de.kandanalor.orbiter.R.id;
+import de.kandanalor.orbiter.R.layout;
 import de.kandanalor.orbiter.game.World;
 import de.kandanalor.orbiter.interfaces.GameStateListener;
 
