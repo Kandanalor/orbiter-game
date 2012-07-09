@@ -5,4 +5,5 @@
     <integer name="planet_frame_width">6</integer>
     <integer name="planet_frame_padding">30</integer>
     <integer name="planet_name_size">30</integer>
+    <color name="main_text_color">#3ab9d4</color>
 </resources>

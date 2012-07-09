@@ -10,6 +10,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -36,9 +37,10 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	private static final String TAG = "DrawPanel";
 	
 
-	
+	//zoom
 	PointF verschiebung = new PointF();
 	float scale = 0.5f;
+	boolean autozoom = false;
 	
 	//UI elements
 	TouchInputType inputmode = null;
@@ -80,6 +82,9 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	@Override
 	public void onDraw(Canvas canvas) {
 		//Log.d(TAG, "onDraw");
+		if(this.autozoom && gameloop.isRunning()) {
+			autoZoom();
+		}
 		canvas.scale(scale, scale);
 		canvas.translate(verschiebung.x, verschiebung.y);
 		
@@ -269,6 +274,13 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		this.scale = scale;
 		setCenter(center);
 	}
+	public void zoom(RectF rect) {
+		float scale_x = getWidth() / rect.width();
+		float scale_y = getHeight() / rect.height();
+		
+		this.scale = scale_x < scale_y ? scale_x : scale_y;
+		setCenter(new PointF(rect.centerX(), rect.centerY()));
+	}
 	public PointF getCenter() {
 		PointF center = new PointF(getWidth()/2, getHeight()/2);
 		return translateTo(center);
@@ -300,6 +312,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
+		autoZoom();
 		//verschiebung = new PointF(getWidth()/2, getHeight()/2);
 	}
 
@@ -311,7 +324,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		// TODO Auto-generated method stub
 		gameloop.setRunning(true);
 		gameloop.start();
-
+		autoZoom();
 	//	ball.setPos(getWidth()/2, getHeight()/2);
 	}
 
@@ -368,6 +381,51 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	}
 	public void setGameStateListener(GameStateListener listener) {
 		gameloop.setGameStateListener(listener);
+	}
+
+	public void autoZoom() {
+		PointF center = world.getBiggestMass().getPos();
+		
+		float maxdist_x=0,maxdist_y=0;
+		
+		for(GameObject o : world.getObjects()) {
+			if(Math.abs(o.getPos().x - center.x) > maxdist_x) {
+				maxdist_x = Math.abs(o.getPos().x - center.x) + o.getRadius();
+			}
+			if(Math.abs(o.getPos().y - center.y) > maxdist_y) {
+				maxdist_y = Math.abs(o.getPos().y - center.y) + o.getRadius();
+			}
+		}
+		
+		float scale_x = getWidth() / (maxdist_x*2);
+		float scale_y = getHeight() / (maxdist_y*2);			
+		float scale = scale_x < scale_y ? scale_x : scale_y;
+		
+		Log.d(TAG, "Maxdist_y = " + maxdist_y + " Maxdist_x = " + maxdist_x);
+		Log.d(TAG, "scale_y = " + scale_y + " scale_x = " + scale_x);
+		zoom(center, scale);
+	}
+	public RectF getWorldRect() {
+		float left=0, right=0, top=0, bottom=0;
+		for(GameObject o : world.getObjects()){
+			if(o.getPos().x-o.getRadius() < left)
+				left = o.getPos().x-o.getRadius();
+			if(o.getPos().x+o.getRadius() > right)
+				right = o.getPos().x+o.getRadius();
+			if(o.getPos().y-o.getRadius() < top)
+				top = o.getPos().y-o.getRadius();
+			if(o.getPos().y+o.getRadius() > bottom)
+				bottom = o.getPos().y+o.getRadius();
+		}
+		float abstaende = getResources().getInteger(R.integer.planet_frame_padding);
+		return new RectF(left-abstaende*2, top-abstaende*2, right+abstaende*2, bottom+abstaende*2);
+	}
+	public void enableAutoZoom() {
+		this.autozoom = true;
+	}
+
+	public void disableAutoZoom() {
+		this.autozoom = false;
 	}
 
 

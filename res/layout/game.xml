@@ -9,14 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-	<ZoomControls
-	    android:id="@+id/zoomCtrl"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignParentBottom="true"
-	    android:layout_centerHorizontal="true"
-	    android:gravity="bottom|center" />
-
 	<de.kandanalor.orbiter.PauseButton
 	    android:id="@+id/pause_btn"
 	    android:layout_width="wrap_content"
@@ -25,5 +17,21 @@
 	    android:layout_alignParentRight="true"
 	    android:gravity="bottom|center"
 	    android:src="@drawable/av_pause" />
+
+	<CheckBox
+	    android:id="@+id/autozoom_chk"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_toLeftOf="@+id/pause_btn"
+	    android:text="@string/autozoom" />
+
+	<ZoomControls
+	    android:id="@+id/zoomCtrl"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_toLeftOf="@+id/checkBox1"
+	    android:gravity="bottom|center" />
 
 </RelativeLayout>

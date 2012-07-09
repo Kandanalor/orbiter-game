@@ -61,14 +61,14 @@ public class PauseButton extends ImageButton implements OnClickListener {
 	public void onClick(View v) {
 		int state = getState();
 		if(state == PLAY) {
-			SaveGameProvider.savegames.put(SaveGameProvider.QUICKSAVE, gameloop.getWorld().clone());
+			SaveGameProvider.save(SaveGameProvider.QUICKSAVE, gameloop.getWorld().clone());
 			gameloop.resumeL();
 		}
 		else if(state == PAUSE) {
 			gameloop.pauseL();
 		}
 		else if(state == REPLAY) {
-			World world = SaveGameProvider.savegames.get(SaveGameProvider.QUICKSAVE);
+			World world = SaveGameProvider.load(SaveGameProvider.QUICKSAVE);
 			world.loadBitmaps(getContext());
 			
 			gameloop.setWorld(world);
@@ -76,8 +76,10 @@ public class PauseButton extends ImageButton implements OnClickListener {
 		}
 	}
 	public int getState() {
-		if(gameloop == null)
-			throw new IllegalArgumentException("Gameloop is not set!");
+		if(gameloop == null) {
+			return PLAY;
+			//throw new IllegalArgumentException("Gameloop is not set!");
+		}
 		if(gameloop.isGame_over()) {
 			return REPLAY;
 		}

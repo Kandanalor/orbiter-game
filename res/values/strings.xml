@@ -3,5 +3,8 @@
 
     <string name="hello">Hello World, OrbiterActivity!</string>
     <string name="app_name">Orbiter</string>
-
+    <string name="campain">Kampagne</string>
+    <string name="free2play">Freies Spiel</string>
+ 	<string name="play">Starte Level</string>
+ 	<string name="autozoom">Auto Zoom</string>
 </resources>

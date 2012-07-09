@@ -55,7 +55,7 @@ public class GameLoop implements Runnable {
 				e.printStackTrace();
 			}
         	
-        	if(!paused && !game_over) {
+        	if(isRunning()) {
 	        	try {
 					getWorld().updatePhysics();
 				} catch (ObjectCollisionException e) {
@@ -130,6 +130,9 @@ public class GameLoop implements Runnable {
 	}
 	public void setWorld(World world) {
 		_panel.setWorld(world);
+	}
+	public boolean isRunning() {
+		return !paused && !game_over;
 	}
     
 }

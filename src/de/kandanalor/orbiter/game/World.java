@@ -136,4 +136,12 @@ public class World extends GameObject{
 		}	
 		return clone;
 	}
+	public GameObject getBiggestMass() {
+		GameObject big = null;
+		for(GameObject o : objects) {
+			if(big == null || big.getMass() < o.getMass())
+				big = o;
+		}
+		return big;
+	}
 }
