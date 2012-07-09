@@ -6,8 +6,8 @@ import android.graphics.PointF;
 
 public class MovementKnob extends VectorKnob {
 
-	public MovementKnob(GameObject origin, Context context) {
-		super(origin, context);
+	public MovementKnob(GameObject origin) {
+		super(origin);
 	}
 	@Override
 	public PointF getValue() {

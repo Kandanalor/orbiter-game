@@ -1,7 +1,7 @@
 package de.kandanalor.orbiter;
 
 
-import java.util.HashMap;
+import java.util.ArrayList;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -10,7 +10,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -25,7 +24,7 @@ import android.view.View.OnTouchListener;
 import de.kandanalor.orbiter.game.GameObject;
 import de.kandanalor.orbiter.game.World;
 import de.kandanalor.orbiter.interfaces.GameStateListener;
-import de.kandanalor.orbiter.ui.MovementKnob;
+import de.kandanalor.orbiter.ui.GameObjectUI;
 import de.kandanalor.orbiter.ui.TouchInputType;
 
 public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, SensorEventListener, OnTouchListener {
@@ -54,8 +53,8 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	
 	private GameObject selected_obj = null;
 	
-	HashMap<GameObject,MovementKnob> mov_knobs = new HashMap<GameObject,MovementKnob>(); 
-
+	//HashMap<GameObject,MovementKnob> mov_knobs = new HashMap<GameObject,MovementKnob>(); 
+	//ArrayList<GameObjectUI> gobject_ui = new ArrayList<GameObjectUI>(); 
 	
 	
 	public DrawPanel(Context context, AttributeSet attrs) {
@@ -75,6 +74,8 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		gameloop = new GameLoop(getHolder(), this);
 		setFocusable(true);
 		setWorld(null);
+		
+		GameObjectUI.setCtx(context);
 	}
 	
 
@@ -92,10 +93,9 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		
 		world.onDraw(canvas);
 		
-		if(gameloop.isPaused()) {
-			for(GameObject planet : world.getObjects()) {
-				drawPlanetUI(planet, canvas);
-			}
+		
+		for(GameObject o : world.getObjects()) {
+				GameObjectUI.getUIfor(o).draw(canvas, gameloop);
 		}
 		
 		/*
@@ -127,45 +127,18 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
     	canvas.drawText("Game Over", (canvas.getWidth())/2-200, (canvas.getHeight())/2, paint);
     	//canvas.drawText("Game Over", 0, 0,  paint);
 	}
-	public void drawPlanetUI(GameObject planet, Canvas canvas) {
-		if(planet != null) {
-			getMovKnobs().get(planet).draw(canvas);
-			
-			Paint paint = new Paint();
-			paint.setColor(getResources().getColor(R.color.planetframe));
-			
-			//paint.setColor(Color.RED); R.integer.planet_name_size
-			paint.setStyle(Paint.Style.STROKE);
-			paint.setTextSize(getResources().getInteger(R.integer.planet_name_size));
-			paint.setAntiAlias(true);
-			
-			PointF pos = planet.getPos();
-			
-			float abstaende = getResources().getInteger(R.integer.planet_frame_padding);
-			canvas.drawText(planet.getName(), pos.x-planet.getRadius() - abstaende, pos.y-planet.getRadius()-abstaende-10, paint);
-			
-			paint.setStrokeWidth(getResources().getInteger(R.integer.planet_frame_width));
-			RectF rect = new RectF(pos.x-planet.getRadius()-abstaende, pos.y-planet.getRadius()-abstaende, pos.x+planet.getRadius() + abstaende, pos.y+planet.getRadius()+abstaende);
-			canvas.drawRoundRect(rect, 20.0f, 20.0f, paint);
-			
-			
 
-
-			
-		}
-
-	}
 
 	
 
-	private HashMap<GameObject, MovementKnob> getMovKnobs() {
+	/*private ArrayList<GameObjectUI> getGObjectUIs() {
 		for(GameObject o : world.getObjects()) {
-			if(!mov_knobs.containsKey(o)) {
-				mov_knobs.put(o, new MovementKnob(o, getContext()));
+			if(!gobject_ui.contains(o)) {
+				gobject_ui.add(new GameObjectUI(o, getContext()));
 			}
 		}
-		return mov_knobs;
-	}
+		return gobject_ui;
+	}*/
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -198,7 +171,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 				t_startPos[0] = t_point;
 				startPos[0] = point;
 				for(GameObject planet : world.getObjects()) {
-					PointF movknob = getMovKnobs().get(planet).getPosition();
+					PointF movknob = GameObjectUI.getUIfor(planet).getMovKnob().getPosition();
 					//Log.d(TAG, "Movknob: " + movknob.x+" "+movknob.y);
 					if(new PointF(t_point.x - movknob.x, t_point.y - movknob.y).length() < 30 / scale) {
 						inputmode = TouchInputType.SET_MOVEMENT;
@@ -234,9 +207,11 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 					break;
 				case MOVE_PLANET:
 					selected_obj.setPos(t_point.x, t_point.y);
+					GameObjectUI.getUIfor(selected_obj).clearPath();
 					break;
 				case SET_MOVEMENT:
-					getMovKnobs().get(selected_obj).setPosition(new PointF(t_point.x, t_point.y));
+					GameObjectUI.getUIfor(selected_obj).clearPath();
+					GameObjectUI.getUIfor(selected_obj).getMovKnob().setPosition(new PointF(t_point.x, t_point.y));
 					break;
 				case SCALE:
 					if(event.getPointerCount() == 2) {
@@ -401,8 +376,8 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		float scale_y = getHeight() / (maxdist_y*2);			
 		float scale = scale_x < scale_y ? scale_x : scale_y;
 		
-		Log.d(TAG, "Maxdist_y = " + maxdist_y + " Maxdist_x = " + maxdist_x);
-		Log.d(TAG, "scale_y = " + scale_y + " scale_x = " + scale_x);
+		//Log.d(TAG, "Maxdist_y = " + maxdist_y + " Maxdist_x = " + maxdist_x);
+		//Log.d(TAG, "scale_y = " + scale_y + " scale_x = " + scale_x);
 		zoom(center, scale);
 	}
 	public RectF getWorldRect() {

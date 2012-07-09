@@ -16,19 +16,18 @@ public abstract class VectorKnob extends Drawable {
 	private int alpha = 255;
 	protected GameObject origin = null;
 	private PointF vector = null;
-	private Context context = null;
+
 	
-	public VectorKnob(GameObject origin,  Context context) {
+	public VectorKnob(GameObject origin) {
 		super();
 		this.origin = origin;
-		this.context = context;
 	}
 	
 	public void draw(Canvas canvas) {
 		Paint paint = new Paint();
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeWidth(6);
-		paint.setColor(context.getResources().getColor(R.color.mov_arrow));
+		paint.setColor(GameObjectUI.ctx.getResources().getColor(R.color.mov_arrow));
 		paint.setAntiAlias(true);
 		
 		

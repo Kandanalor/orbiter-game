@@ -29,6 +29,10 @@ public abstract class GameObject implements Cloneable, Serializable{
 	private static final String TAG = "GameObject";
 	private String name = "";
 	
+	//this color is used as a symbol, e.g. in the GUI
+	private int color = 0;
+	
+	
 	public PointF getPos() {
 		return pos;
 	}
@@ -173,4 +177,10 @@ public abstract class GameObject implements Cloneable, Serializable{
 	 * Load all your Bitmaps here is called on initialisation and deserialization
 	 * */
 	public void loadBitmaps(Context context) {}
+	public int getColor() {
+		return color;
+	}
+	public void setColor(int color) {
+		this.color = color;
+	}
 }

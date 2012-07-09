@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.util.Log;
 
 public class Planet extends GameObject {
@@ -13,6 +14,7 @@ public class Planet extends GameObject {
 	private int bmp_id = -1;
 	private transient Bitmap img = null;
 	private transient Bitmap img_orig = null;
+
 	public Planet() {
 		
 	}
@@ -58,8 +60,10 @@ public class Planet extends GameObject {
 		Planet clone = new Planet(getRadius(), getMass(), bmp_id);
 		clone.setPos(getPos().x, getPos().y);
 		clone.setMovement(getMovement().x, getMovement().y);
+		clone.setColor(getColor());
 		
 		return clone;
 	}
+
 
 }

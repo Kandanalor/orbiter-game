@@ -6,8 +6,8 @@ import android.graphics.PointF;
 
 public class GravKnob extends VectorKnob {
 
-	public GravKnob(GameObject origin, Context context) {
-		super(origin, context);
+	public GravKnob(GameObject origin) {
+		super(origin);
 	}
 
 	@Override

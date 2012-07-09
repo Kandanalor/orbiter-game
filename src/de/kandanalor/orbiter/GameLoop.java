@@ -6,9 +6,10 @@ import android.view.SurfaceHolder;
 import de.kandanalor.orbiter.exceptions.ObjectCollisionException;
 import de.kandanalor.orbiter.game.World;
 import de.kandanalor.orbiter.interfaces.GameStateListener;
+import de.kandanalor.orbiter.interfaces.IGameState;
 
 
-public class GameLoop implements Runnable {
+public class GameLoop implements Runnable, IGameState {
     private SurfaceHolder _surfaceHolder;
     private DrawPanel _panel;
 	private GameStateListener state_listener = null;
@@ -130,6 +131,7 @@ public class GameLoop implements Runnable {
 	}
 	public void setWorld(World world) {
 		_panel.setWorld(world);
+		
 	}
 	public boolean isRunning() {
 		return !paused && !game_over;
