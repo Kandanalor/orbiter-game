@@ -1,8 +1,6 @@
 package de.kandanalor.orbiter;
 
 
-import java.util.ArrayList;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -26,6 +24,7 @@ import de.kandanalor.orbiter.game.World;
 import de.kandanalor.orbiter.interfaces.GameStateListener;
 import de.kandanalor.orbiter.ui.GameObjectUI;
 import de.kandanalor.orbiter.ui.TouchInputType;
+import de.kandanalor.orbiter.ui.Zoom;
 
 public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, SensorEventListener, OnTouchListener {
 	
@@ -36,10 +35,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	private static final String TAG = "DrawPanel";
 	
 
-	//zoom
-	PointF verschiebung = new PointF();
-	float scale = 0.5f;
-	boolean autozoom = false;
+
 	
 	//UI elements
 	TouchInputType inputmode = null;
@@ -52,7 +48,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	float startscale = 0;
 	
 	private GameObject selected_obj = null;
-	
+	private Zoom zoom = new Zoom(this);
 	//HashMap<GameObject,MovementKnob> mov_knobs = new HashMap<GameObject,MovementKnob>(); 
 	//ArrayList<GameObjectUI> gobject_ui = new ArrayList<GameObjectUI>(); 
 	
@@ -83,11 +79,11 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	@Override
 	public void onDraw(Canvas canvas) {
 		//Log.d(TAG, "onDraw");
-		if(this.autozoom && gameloop.isRunning()) {
-			autoZoom();
+		if(zoom.isAutozoom() && gameloop.isRunning()) {
+			zoom.autoZoom();
 		}
-		canvas.scale(scale, scale);
-		canvas.translate(verschiebung.x, verschiebung.y);
+		canvas.scale(zoom.getScale(), zoom.getScale());
+		canvas.translate(zoom.getVerschiebung().x, zoom.getVerschiebung().y);
 		
 		
 		
@@ -143,7 +139,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		
-		PointF t_point = translateTo(new PointF(event.getX(), event.getY()));
+		PointF t_point = zoom.translateTo(new PointF(event.getX(), event.getY()));
 		PointF point = new PointF(event.getX(), event.getY());
 		
 
@@ -159,12 +155,12 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 					
 			if(event.getPointerCount() == 2) {
 				inputmode = TouchInputType.SCALE;
-				t_point = translateTo(new PointF(event.getX(1), event.getY(1)));
+				t_point = zoom.translateTo(new PointF(event.getX(1), event.getY(1)));
 				point = new PointF(event.getX(1), event.getY(1));
 				t_startPos[1] = t_point; 
 				startPos[1] = point;
 				pointer_ids[1] =  event.getPointerId(1);
-				startscale = scale;
+				startscale = zoom.getScale();
 			}
 			else {
 				pointer_ids[0] =  event.getPointerId(0);
@@ -173,14 +169,14 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 				for(GameObject planet : world.getObjects()) {
 					PointF movknob = GameObjectUI.getUIfor(planet).getMovKnob().getPosition();
 					//Log.d(TAG, "Movknob: " + movknob.x+" "+movknob.y);
-					if(new PointF(t_point.x - movknob.x, t_point.y - movknob.y).length() < 30 / scale) {
+					if(new PointF(t_point.x - movknob.x, t_point.y - movknob.y).length() < 30 / zoom.getScale()) {
 						inputmode = TouchInputType.SET_MOVEMENT;
 						selected_obj = planet;
 					}
 					
 				}
 				if(inputmode == null) {
-					GameObject planet = world.getObjectOn(t_point, 30 / scale);				
+					GameObject planet = world.getObjectOn(t_point, 30 / zoom.getScale());				
 					if(planet == null) {
 						inputmode = TouchInputType.MOVE_WORLD;
 					}
@@ -193,14 +189,14 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 			}
 			
 			if(inputmode == TouchInputType.MOVE_WORLD) {
-				startTranslate = getCenter();
+				startTranslate = zoom.getCenter();
 			}
 		}
 		else if (action == MotionEvent.ACTION_MOVE){
 			switch(inputmode) {
 				case MOVE_WORLD:
-					PointF newcenter = new PointF(startTranslate.x + (startPos[0].x - point.x) / scale, startTranslate.y + (startPos[0].y - point.y) / scale); 
-					setCenter(newcenter);
+					PointF newcenter = new PointF(startTranslate.x + (startPos[0].x - point.x) / zoom.getScale(), startTranslate.y + (startPos[0].y - point.y) / zoom.getScale()); 
+					zoom.setCenter(newcenter);
 					//verschiebung.x = startTranslate.x + (point.x - startPos[0].x);
 					//verschiebung.y = startTranslate.y + (point.y - startPos[0].y);
 					//Log.d(TAG, "Verschiebung: " + verschiebung.x + " " + verschiebung.y);
@@ -221,7 +217,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 
 						
 						PointF middle = new PointF(ptr1.x - (ptr1.x - ptr2.x)/2, ptr1.y - (ptr1.y - ptr2.y)/2);
-						PointF t_middle = translateTo(middle);
+						PointF t_middle = zoom.translateTo(middle);
 						
 						float startdist = (float) Math.sqrt((startPos[0].x - startPos[1].x)*(startPos[0].x - startPos[1].x) + (startPos[0].y - startPos[1].y)*(startPos[0].y - startPos[1].y));
 						
@@ -229,12 +225,12 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 						float newscale = startscale * dist / startdist;
 						Log.d(TAG, "SCALE" +newscale);
 						//zoom(new PointF(center.x + getCenter().x, center.y + getCenter().y), newscale);
-						zoom(getCenter(), newscale);
+						zoom.zoom(zoom.getCenter(), newscale);
 						
-						PointF t_middle_new = translateTo(middle);
+						PointF t_middle_new = zoom.translateTo(middle);
 						PointF dxy = new PointF(t_middle.x-t_middle_new.x, t_middle.y - t_middle_new.y);
-						PointF center = getCenter();
-						zoom(new PointF(center.x + dxy.x, center.y + dxy.y), newscale);
+						PointF center = zoom.getCenter();
+						zoom.zoom(new PointF(center.x + dxy.x, center.y + dxy.y), newscale);
 					}
 			}
 		}
@@ -245,30 +241,8 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		return true;
 	}
 
-	public void zoom(PointF center, float scale) {
-		this.scale = scale;
-		setCenter(center);
-	}
-	public void zoom(RectF rect) {
-		float scale_x = getWidth() / rect.width();
-		float scale_y = getHeight() / rect.height();
-		
-		this.scale = scale_x < scale_y ? scale_x : scale_y;
-		setCenter(new PointF(rect.centerX(), rect.centerY()));
-	}
-	public PointF getCenter() {
-		PointF center = new PointF(getWidth()/2, getHeight()/2);
-		return translateTo(center);
-	}
-	public void setCenter(PointF center) {
-		PointF oldcenter = getCenter();
-		verschiebung.x -= center.x - oldcenter.x;
-		verschiebung.y -= center.y - oldcenter.y;
-		
-	}
-	public PointF translateTo(PointF from) {
-		return new PointF((from.x / scale) - verschiebung.x, (from.y / scale)  - verschiebung.y );
-	}
+
+
 	/*public PointF translateFrom(PointF to) {
 		return new PointF((to.x + verschiebung.x) * scale, (to.y + verschiebung.y) * scale );
 	}*/
@@ -287,19 +261,19 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		autoZoom();
+		zoom.autoZoom();
 		//verschiebung = new PointF(getWidth()/2, getHeight()/2);
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 
-		setCenter(new PointF(getWidth()/2, getHeight()/2));
+		zoom.setCenter(new PointF(getWidth()/2, getHeight()/2));
 		//trans_pos.setTranslate(getWidth()/2, getHeight()/2);
 		// TODO Auto-generated method stub
 		gameloop.setRunning(true);
 		gameloop.start();
-		autoZoom();
+		zoom.autoZoom();
 	//	ball.setPos(getWidth()/2, getHeight()/2);
 	}
 
@@ -333,15 +307,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 
 
 
-	public float getZoom() {
-		return scale;
-	}
-
-	public void setZoom(float scale) {
-		this.scale = scale;
-	}
-
-
+	
 
 	public GameLoop getGameLoop() {
 		return gameloop;
@@ -358,50 +324,11 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		gameloop.setGameStateListener(listener);
 	}
 
-	public void autoZoom() {
-		PointF center = world.getBiggestMass().getPos();
-		
-		float maxdist_x=0,maxdist_y=0;
-		
-		for(GameObject o : world.getObjects()) {
-			if(Math.abs(o.getPos().x - center.x) > maxdist_x) {
-				maxdist_x = Math.abs(o.getPos().x - center.x) + o.getRadius();
-			}
-			if(Math.abs(o.getPos().y - center.y) > maxdist_y) {
-				maxdist_y = Math.abs(o.getPos().y - center.y) + o.getRadius();
-			}
-		}
-		
-		float scale_x = getWidth() / (maxdist_x*2);
-		float scale_y = getHeight() / (maxdist_y*2);			
-		float scale = scale_x < scale_y ? scale_x : scale_y;
-		
-		//Log.d(TAG, "Maxdist_y = " + maxdist_y + " Maxdist_x = " + maxdist_x);
-		//Log.d(TAG, "scale_y = " + scale_y + " scale_x = " + scale_x);
-		zoom(center, scale);
-	}
-	public RectF getWorldRect() {
-		float left=0, right=0, top=0, bottom=0;
-		for(GameObject o : world.getObjects()){
-			if(o.getPos().x-o.getRadius() < left)
-				left = o.getPos().x-o.getRadius();
-			if(o.getPos().x+o.getRadius() > right)
-				right = o.getPos().x+o.getRadius();
-			if(o.getPos().y-o.getRadius() < top)
-				top = o.getPos().y-o.getRadius();
-			if(o.getPos().y+o.getRadius() > bottom)
-				bottom = o.getPos().y+o.getRadius();
-		}
-		float abstaende = getResources().getInteger(R.integer.planet_frame_padding);
-		return new RectF(left-abstaende*2, top-abstaende*2, right+abstaende*2, bottom+abstaende*2);
-	}
-	public void enableAutoZoom() {
-		this.autozoom = true;
+	public Zoom getZoom() {
+		return zoom;
 	}
 
-	public void disableAutoZoom() {
-		this.autozoom = false;
-	}
+	
 
 
 }

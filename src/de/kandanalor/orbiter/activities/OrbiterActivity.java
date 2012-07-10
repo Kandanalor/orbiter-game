@@ -65,14 +65,14 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 
 			@Override
 			public void onClick(View v) {
-				drawpanel.zoom(drawpanel.getCenter(), drawpanel.getZoom() + 0.1f);
+				drawpanel.getZoom().zoom(drawpanel.getZoom().getCenter(), drawpanel.getZoom().getScale() + 0.1f);
 			}
 		});
 	    zoomctrl.setOnZoomOutClickListener(new View.OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
-				drawpanel.zoom(drawpanel.getCenter(), drawpanel.getZoom() - 0.1f);
+				drawpanel.getZoom().zoom(drawpanel.getZoom().getCenter(), drawpanel.getZoom().getScale() - 0.1f);
 			}
 		});
 	    
@@ -85,11 +85,11 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 
 			public void onClick(View v) {
 				if(autozoom_chk.isChecked()) {
-					drawpanel.autoZoom();
-					drawpanel.enableAutoZoom();
+					drawpanel.getZoom().autoZoom();
+					drawpanel.getZoom().enableAutoZoom();
 				}
 				else {
-					drawpanel.disableAutoZoom();
+					drawpanel.getZoom().disableAutoZoom();
 				}
 			}
 		});
