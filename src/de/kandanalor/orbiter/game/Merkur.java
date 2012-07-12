@@ -2,6 +2,7 @@ package de.kandanalor.orbiter.game;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import de.kandanalor.orbiter.R;
 
 public class Merkur extends Planet {
@@ -10,8 +11,9 @@ public class Merkur extends Planet {
 	public Merkur() {
 		super();
 		setRadius(40);
-		setMass(40);
+		setMass(70);
 		setBitmapResource(R.drawable.merkur);
 		setName("Merkur");
+		setColor(Color.LTGRAY);
 	}
 }

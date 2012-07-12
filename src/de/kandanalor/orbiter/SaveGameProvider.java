@@ -16,22 +16,26 @@ public class SaveGameProvider {
 	static {
 		World stdworld = new World();
 		Moon moon = new Moon();
-		//Merkur merkur = new Merkur();
+		Merkur merkur = new Merkur();
 		Earth earth = new Earth();
+		
 		
         earth.setPos(0,0);
         earth.setMovement(0,0);
         
-        //merkur.setPos(0,0);
+        merkur.setPos(-200,0);
         //merkur.setMovement(-50,0);
 
         
         moon.setPos(200,200);
         moon.setMovement(0,-50);
         
-        stdworld.getObjects().add(moon);
-        //stdworld.getObjects().add(merkur);
+        
         stdworld.getObjects().add(earth);
+        stdworld.getObjects().add(moon);
+        stdworld.getObjects().add(merkur);
+       
+        
         stdworld.setName("Level 1");
         campaign[0] = stdworld;
 	}

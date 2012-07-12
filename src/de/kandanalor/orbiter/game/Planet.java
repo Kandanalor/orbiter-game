@@ -26,9 +26,12 @@ public class Planet extends GameObject {
 	}
 	public void setBitmap(Bitmap bmp) {
 		this.img_orig = bmp;
-		if(img_orig != null && getRadius() > 0)
+		if(img_orig != null && getRadius() > 0) {
 			this.img = getResizedBitmap(img_orig, getRadius()*2, getRadius()*2);
+		}
+			
 	}
+
 	public void setBitmapResource(int id) {
 		this.bmp_id = id;
 	}
@@ -61,9 +64,18 @@ public class Planet extends GameObject {
 		clone.setPos(getPos().x, getPos().y);
 		clone.setMovement(getMovement().x, getMovement().y);
 		clone.setColor(getColor());
-		
+		clone.setBitmap(getBitmap());
 		return clone;
 	}
+	@Override
+	public boolean equals(Object o){
+		if(o instanceof Planet) {
+			boolean same = super.equals(o);
+			same &= getBitmap().equals(((Planet) o).getBitmap());
 
+			return same;
+		}
+		else return false;
+	}
 
 }

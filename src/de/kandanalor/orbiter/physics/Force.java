@@ -14,4 +14,7 @@ public class Force extends PointF {
 	public String toString() {
 		return "Force("+x+","+y+")";
 	}
+	public PointF getAcceleration(int mass) {
+		return new PointF(x/mass, y/mass);
+	}
 }

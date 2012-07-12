@@ -1,7 +1,7 @@
 package de.kandanalor.orbiter.ui;
 
-import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -9,14 +9,13 @@ import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import de.kandanalor.orbiter.R;
 import de.kandanalor.orbiter.game.GameObject;
-import de.kandanalor.orbiter.physics.Movement;
 
 public abstract class VectorKnob extends Drawable {
 
 	private int alpha = 255;
 	protected GameObject origin = null;
 	private PointF vector = null;
-
+	private int color = 0; 
 	
 	public VectorKnob(GameObject origin) {
 		super();
@@ -27,7 +26,7 @@ public abstract class VectorKnob extends Drawable {
 		Paint paint = new Paint();
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeWidth(6);
-		paint.setColor(GameObjectUI.ctx.getResources().getColor(R.color.mov_arrow));
+		paint.setColor(getColor());
 		paint.setAntiAlias(true);
 		
 		
@@ -103,6 +102,14 @@ public abstract class VectorKnob extends Drawable {
 	@Override
 	public void setColorFilter(ColorFilter cf) {
 
+	}
+
+	public int getColor() {
+		return color;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
 	}
 
 }

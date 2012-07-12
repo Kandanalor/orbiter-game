@@ -91,7 +91,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 		
 		
 		for(GameObject o : world.getObjects()) {
-				GameObjectUI.getUIfor(o).draw(canvas, gameloop);
+				GameObjectUI.getUIfor(o,world).draw(canvas, gameloop);
 		}
 		
 		/*
@@ -167,7 +167,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 				t_startPos[0] = t_point;
 				startPos[0] = point;
 				for(GameObject planet : world.getObjects()) {
-					PointF movknob = GameObjectUI.getUIfor(planet).getMovKnob().getPosition();
+					PointF movknob = GameObjectUI.getUIfor(planet,world).getMovKnob().getPosition();
 					//Log.d(TAG, "Movknob: " + movknob.x+" "+movknob.y);
 					if(new PointF(t_point.x - movknob.x, t_point.y - movknob.y).length() < 30 / zoom.getScale()) {
 						inputmode = TouchInputType.SET_MOVEMENT;
@@ -203,11 +203,11 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 					break;
 				case MOVE_PLANET:
 					selected_obj.setPos(t_point.x, t_point.y);
-					GameObjectUI.getUIfor(selected_obj).clearPath();
+					GameObjectUI.getUIfor(selected_obj,world).clearPath();
 					break;
 				case SET_MOVEMENT:
-					GameObjectUI.getUIfor(selected_obj).clearPath();
-					GameObjectUI.getUIfor(selected_obj).getMovKnob().setPosition(new PointF(t_point.x, t_point.y));
+					GameObjectUI.getUIfor(selected_obj,world).clearPath();
+					GameObjectUI.getUIfor(selected_obj,world).getMovKnob().setPosition(new PointF(t_point.x, t_point.y));
 					break;
 				case SCALE:
 					if(event.getPointerCount() == 2) {
@@ -232,7 +232,7 @@ public class DrawPanel  extends SurfaceView implements SurfaceHolder.Callback, S
 						PointF center = zoom.getCenter();
 						zoom.zoom(new PointF(center.x + dxy.x, center.y + dxy.y), newscale);
 					}
-			}
+				}
 		}
 		else if (action == MotionEvent.ACTION_UP  || action == MotionEvent.ACTION_POINTER_DOWN){
 

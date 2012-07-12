@@ -1,9 +1,7 @@
 package de.kandanalor.orbiter.activities;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
@@ -14,6 +12,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.ZoomControls;
 import de.kandanalor.orbiter.DrawPanel;
 import de.kandanalor.orbiter.PauseButton;
@@ -37,7 +36,7 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,  WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
         
 		setContentView(R.layout.game);
@@ -48,15 +47,26 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 	    drawpanel = (DrawPanel)findViewById(R.id.drawPanel);
 	    drawpanel.setGameStateListener(this);
 	    
+	    
+	    //get the world
+
 		Intent intent= getIntent();
 		String levelname = intent.getStringExtra("level");
 		World stdworld = null;
-	    if(levelname != null) {
-	    	stdworld = SaveGameProvider.load(levelname);
-	    }
-	    else {
-	    	stdworld = SaveGameProvider.load(SaveGameProvider.QUICKSAVE);
-	    }
+		
+	    boolean orientchanged = false; 
+		stdworld = (World)getLastNonConfigurationInstance();
+		if(stdworld == null) {
+		    if(levelname != null) {
+		    	stdworld = SaveGameProvider.load(levelname);
+		    }
+		    else {
+		    	stdworld = SaveGameProvider.load(SaveGameProvider.QUICKSAVE);
+		    }
+		}
+		else {
+			orientchanged = true;
+		}
 	    Log.d(TAG, "Load world: "+stdworld);
 	    drawpanel.setWorld(stdworld);
 	    
@@ -93,6 +103,8 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 				}
 			}
 		});
+	    if(orientchanged) 
+	    	drawpanel.getGameLoop().setRunning(true);
 	}
     protected void onResume() {
         super.onResume();
@@ -106,9 +118,15 @@ public class OrbiterActivity extends Activity implements GameStateListener {
         mSensorManager.unregisterListener(drawpanel);
         drawpanel.getGameLoop().pauseL();
     }
+    @Override
+    protected void onDestroy() {
+        super.onPause();
+        SaveGameProvider.save(SaveGameProvider.QUICKSAVE, drawpanel.getWorld());
+    }
 	@Override
 	public void onGamePaused() {
 		PauseButton pause = (PauseButton)findViewById(R.id.pause_btn);
+		drawpanel.getZoom().resetAutozoom();
 		//pause.setState(PauseButton.PLAY);
 		//Log.d(TAG, "onGamePaused");
 	}
@@ -121,5 +139,14 @@ public class OrbiterActivity extends Activity implements GameStateListener {
 	public void onGameOver() {
 		PauseButton pause = (PauseButton)findViewById(R.id.pause_btn);
 		//pause.setState(PauseButton.PLAY);
-	}	 
+	}	
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+        return drawpanel.getWorld();
+    }
+	@Override
+	public void onGamePhysikUpdate(World world) {
+		TextView score_txv = (TextView)findViewById(R.id.score_txv);
+		
+	}
 }

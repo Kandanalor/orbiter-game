@@ -1,6 +1,7 @@
 package de.kandanalor.orbiter.game;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -20,6 +21,8 @@ public abstract class GameObject implements Cloneable, Serializable{
 	
 	private PointF pos = new PointF(0,0);
 	private Movement movement = new Movement(0,0); // in m/s
+	private ArrayList<Force> forces = new ArrayList<Force>();
+	
 	private int mass = 1; //in kg
 	private int radius = 0;//in m
 	
@@ -40,9 +43,12 @@ public abstract class GameObject implements Cloneable, Serializable{
 	public void setPos(float x, float y) {
 		this.pos = new PointF(x,y);
 	}
-	public Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
+	public static Bitmap getResizedBitmap(Bitmap bm, int newWidth, int newHeight) {
 		int width = bm.getWidth();
 		int height = bm.getHeight();
+		if(width == newWidth && height == newHeight) {
+			return bm;
+		}
 		float scaleWidth = ((float) newWidth) / width;
 		float scaleHeight = ((float) newHeight) / height;
 		// create a matrix for the manipulation
@@ -111,23 +117,9 @@ public abstract class GameObject implements Cloneable, Serializable{
 	}
 	/**
 	 * returns Gravitation [F]=kg * (m / s^2)
+	 * richtung des Force Vectors ist von hier zu GameObject o
 	 * */
 	public Force getGravitation(GameObject o) {
-		/*PointF pos_a = getPos();
-		PointF pos_b = o.getPos();
-		float sq_distance = (pos_a.x - pos_b.x) * (pos_a.x - pos_b.x) + (pos_a.y - pos_b.y) * (pos_a.y - pos_b.y);
-		float distance = (float) Math.sqrt(sq_distance);
-		float grav =  G * (getMass() * o.getMass()) / sq_distance;
-		
-		//normierter richtungsvektor
-		float richtung_x = (pos_a.x - pos_b.x)/distance;
-		float richtung_y = (pos_a.y - pos_b.y)/distance;
-		
-		int dtime = getDeltaTime();
-		
-		Force gravf = new Force((-richtung_x * grav) * (float)(dtime)/1000, -richtung_y*grav * (float)(dtime)/1000); //per second
-		*/
-		
 		PointF pos_a = getPos();
 		PointF pos_b = o.getPos();
 		int mass_a = getMass();
@@ -138,21 +130,23 @@ public abstract class GameObject implements Cloneable, Serializable{
 		float richtung_x = (pos_b.x - pos_a.x)/distance;
 		float richtung_y = (pos_b.y - pos_a.y)/distance;
 		
-		float grav =  G * (mass_a * mass_b) / sq_distance;
+		float grav =  Math.abs(G * (mass_a * mass_b) / sq_distance);
 		
 		Force gravf = new Force(richtung_x * grav, richtung_y * grav);
-		//Log.d(TAG, "Gravitation: " + gravf.x + " " + gravf.y);
-		/*float distance = new Force(getPos().x-o.getPos().x, getPos().y-o.getPos().y).length();
-		float grav =  G * (getMass() * o.getMass()) / (distance * distance);
-		Force richtung = new Force((getPos().x-o.getPos().x)/distance, (getPos().y-o.getPos().y)/distance);
-		int dtime = getDeltaTime();
-		Force movement = new Force((-richtung.x * grav) * (float)(dtime)/1000, -richtung.y*grav * (float)(dtime)/1000); //per second
-		return movement;*/
 		return gravf;
 	}
-
-	public void applyForce(Force gravitation) {
-		addMovement(new Movement(gravitation.x/getMass(), gravitation.y/getMass()));
+	public void clearForceHistory() {
+		/*for(Force f : forces) {
+			forces.remove(f);
+		}*/
+		forces = new ArrayList<Force>();
+	}
+	public void addForce(Force f) {
+		forces.add(f);
+		applyForce(f);
+	}
+	public void applyForce(Force f) {
+		addMovement(new Movement(f.x/getMass(), f.y/getMass()));
 	}
 
 	public void setPos(PointF point) {
@@ -182,5 +176,23 @@ public abstract class GameObject implements Cloneable, Serializable{
 	}
 	public void setColor(int color) {
 		this.color = color;
+	}
+
+	public Force[] getForces() {
+		
+		return forces.toArray(new Force[]{});
+	}
+	@Override
+	public boolean equals(Object o){
+		if(o instanceof GameObject) {
+			boolean same = true;
+			same &= getName().equals(((GameObject) o).getName());
+			same &= getMass() == ((GameObject) o).getMass();
+			same &= getRadius() == ((GameObject) o).getRadius();
+			same &= getPos().equals(((GameObject) o).getPos());
+			same &= getMovement().equals(((GameObject) o).getMovement());
+			return same;
+		}
+		else return false;
 	}
 }

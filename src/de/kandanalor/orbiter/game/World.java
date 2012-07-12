@@ -67,6 +67,9 @@ public class World extends GameObject{
 	@Override
 	public void updatePhysics() throws ObjectCollisionException {
 		int dtime = getDeltaTime();
+		for(GameObject o : objects){
+			o.clearForceHistory();
+		}
 		for(int i = 0; i < objects.size(); i++) {
 			for(int j = i+1; j < objects.size(); j++) {
 				float normierung = (float)dtime / 1000;
@@ -74,8 +77,8 @@ public class World extends GameObject{
 				gravitation.x *= normierung;
 				gravitation.y *= normierung;
 				//Log.d(TAG, "getGravitation "+gravc);
-				objects.get(i).applyForce(gravitation);
-				objects.get(j).applyForce(gravitation.invert());
+				objects.get(i).addForce(gravitation);
+				objects.get(j).addForce(gravitation.invert());
 			}
 			objects.get(i).updatePhysics();
 		}
